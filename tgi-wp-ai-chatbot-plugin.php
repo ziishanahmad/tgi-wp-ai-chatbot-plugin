@@ -5,7 +5,6 @@ Description: A WordPress plugin to add a floating ChatGPT chatbot icon.
 Version: 1.0
 Author: Zeeshan Ahmad
 Author URI: https://tabsgi.com
-Athor Email : ziishanahmad@gmail.com
 */
 
 if (!defined('ABSPATH')) {
@@ -16,10 +15,12 @@ class TGI_WP_AI_Chatbot_Plugin {
 
     public function __construct() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_menu', array($this, 'create_admin_menu'));
         add_action('wp_footer', array($this, 'add_chat_icon'));
         add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
         add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
+        add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
         register_activation_hook(__FILE__, array($this, 'create_db'));
     }
 
@@ -33,10 +34,119 @@ class TGI_WP_AI_Chatbot_Plugin {
             'ajax_url' => admin_url('admin-ajax.php')
         ));
     }
-    
+
+    public function enqueue_admin_scripts($hook_suffix) {
+        if ($hook_suffix === 'toplevel_page_tgi-wp-ai-chatbot') {
+            wp_enqueue_script('tgi-chatgpt-admin-script', plugin_dir_url(__FILE__) . 'js/admin.js', array('jquery'), null, true);
+            wp_localize_script('tgi-chatgpt-admin-script', 'tgi_chatgpt_admin', array(
+                'nonce' => wp_create_nonce('clear_tgi_chat_logs_nonce')
+            ));
+        }
+    }
 
     public function create_admin_menu() {
         add_menu_page('TGI WP AI Chatbot', 'AI Chatbot', 'manage_options', 'tgi-wp-ai-chatbot', array($this, 'admin_page'), 'dashicons-format-chat', 6);
+    }
+
+    public function admin_page() {
+        if (isset($_POST['tgi_chatgpt_api_key'])) {
+            update_option('tgi_chatgpt_api_key', sanitize_text_field($_POST['tgi_chatgpt_api_key']));
+            echo '<div class="updated"><p>Changes were saved.</p></div>';
+        }
+
+        if (isset($_POST['tgi_chatgpt_assistant_id'])) {
+            update_option('tgi_chatgpt_assistant_id', sanitize_text_field($_POST['tgi_chatgpt_assistant_id']));
+            echo '<div class="updated"><p>Changes were saved.</p></div>';
+        }
+
+        if (isset($_POST['tgi_chatgpt_thread_id'])) {
+            update_option('tgi_chatgpt_thread_id', sanitize_text_field($_POST['tgi_chatgpt_thread_id']));
+            echo '<div class="updated"><p>Changes were saved.</p></div>';
+        }
+
+        $api_key = get_option('tgi_chatgpt_api_key', '');
+        $assistant_id = get_option('tgi_chatgpt_assistant_id', '');
+        $thread_id = get_option('tgi_chatgpt_thread_id', '');
+
+        ?>
+        <div class="wrap">
+            <h1>TGI WP AI Chatbot Settings</h1>
+            <form method="post">
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">ChatGPT API Key</th>
+                        <td><input type="text" name="tgi_chatgpt_api_key" value="<?php echo esc_attr($api_key); ?>" size="50"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Assistant ID</th>
+                        <td><input type="text" name="tgi_chatgpt_assistant_id" value="<?php echo esc_attr($assistant_id); ?>" size="50"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Thread ID</th>
+                        <td><input type="text" name="tgi_chatgpt_thread_id" value="<?php echo esc_attr($thread_id); ?>" size="50"/></td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+            <button id="clear-logs" class="button button-secondary">Clear All Chat and Error Logs</button>
+            <div id="clear-logs-message" style="margin-top: 20px;"></div>
+            <h2>Chat Records</h2>
+            <?php
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'tgi_chatgpt_chats';
+            $chats = $wpdb->get_results("SELECT * FROM $table_name ORDER BY time DESC");
+
+            echo '<table class="wp-list-table widefat fixed striped">';
+            echo '<thead><tr><th>ID</th><th>Session ID</th><th>User Message</th><th>Bot Response</th><th>Time</th></tr></thead>';
+            echo '<tbody>';
+
+            foreach ($chats as $chat) {
+                echo '<tr>';
+                echo '<td>' . $chat->id . '</td>';
+                echo '<td>' . $chat->session_id . '</td>';
+                echo '<td>' . $chat->user_message . '</td>';
+                echo '<td>' . $chat->bot_response . '</td>';
+                echo '<td>' . $chat->time . '</td>';
+                echo '</tr>';
+            }
+
+            echo '</tbody></table>';
+            ?>
+
+            <h2>Error Logs</h2>
+            <?php
+            $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
+            $errors = $wpdb->get_results("SELECT * FROM $error_log_table ORDER BY time DESC");
+
+            echo '<table class="wp-list-table widefat fixed striped">';
+            echo '<thead><tr><th>ID</th><th>Error Message</th><th>Time</th></tr></thead>';
+            echo '<tbody>';
+
+            foreach ($errors as $error) {
+                echo '<tr>';
+                echo '<td>' . $error->id . '</td>';
+                echo '<td>' . $error->error_message . '</td>';
+                echo '<td>' . $error->time . '</td>';
+                echo '</tr>';
+            }
+
+            echo '</tbody></table>';
+            ?>
+        </div>
+        <?php
+    }
+
+    public function clear_logs() {
+        check_ajax_referer('clear_tgi_chat_logs_nonce', 'nonce');
+
+        global $wpdb;
+        $chat_table = $wpdb->prefix . 'tgi_chatgpt_chats';
+        $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
+
+        $wpdb->query("TRUNCATE TABLE $chat_table");
+        $wpdb->query("TRUNCATE TABLE $error_log_table");
+
+        wp_send_json_success();
     }
 
     public function add_chat_icon() {
@@ -205,92 +315,6 @@ class TGI_WP_AI_Chatbot_Plugin {
                 'time' => current_time('mysql')
             )
         );
-    }
-
-    public function admin_page() {
-        if ($_POST['tgi_chatgpt_api_key']) {
-            update_option('tgi_chatgpt_api_key', sanitize_text_field($_POST['tgi_chatgpt_api_key']));
-            echo '<div class="updated"><p>Changes were saved.</p></div>';
-        }
-
-        if ($_POST['tgi_chatgpt_assistant_id']) {
-            update_option('tgi_chatgpt_assistant_id', sanitize_text_field($_POST['tgi_chatgpt_assistant_id']));
-            echo '<div class="updated"><p>Changes were saved.</p></div>';
-        }
-
-        if ($_POST['tgi_chatgpt_thread_id']) {
-            update_option('tgi_chatgpt_thread_id', sanitize_text_field($_POST['tgi_chatgpt_thread_id']));
-            echo '<div class="updated"><p>Changes were saved.</p></div>';
-        }
-
-        $api_key = get_option('tgi_chatgpt_api_key', '');
-        $assistant_id = get_option('tgi_chatgpt_assistant_id', '');
-        $thread_id = get_option('tgi_chatgpt_thread_id', '');
-
-        ?>
-        <div class="wrap">
-            <h1>TGI WP AI Chatbot Settings</h1>
-            <form method="post">
-                <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row">ChatGPT API Key</th>
-                        <td><input type="text" name="tgi_chatgpt_api_key" value="<?php echo esc_attr($api_key); ?>" size="50"/></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Assistant ID</th>
-                        <td><input type="text" name="tgi_chatgpt_assistant_id" value="<?php echo esc_attr($assistant_id); ?>" size="50"/></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Thread ID</th>
-                        <td><input type="text" name="tgi_chatgpt_thread_id" value="<?php echo esc_attr($thread_id); ?>" size="50"/></td>
-                    </tr>
-                </table>
-                <?php submit_button(); ?>
-            </form>
-            <h2>Chat Records</h2>
-            <?php
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'tgi_chatgpt_chats';
-            $chats = $wpdb->get_results("SELECT * FROM $table_name ORDER BY time DESC");
-
-            echo '<table class="wp-list-table widefat fixed striped">';
-            echo '<thead><tr><th>ID</th><th>Session ID</th><th>User Message</th><th>Bot Response</th><th>Time</th></tr></thead>';
-            echo '<tbody>';
-
-            foreach ($chats as $chat) {
-                echo '<tr>';
-                echo '<td>' . $chat->id . '</td>';
-                echo '<td>' . $chat->session_id . '</td>';
-                echo '<td>' . $chat->user_message . '</td>';
-                echo '<td>' . $chat->bot_response . '</td>';
-                echo '<td>' . $chat->time . '</td>';
-                echo '</tr>';
-            }
-
-            echo '</tbody></table>';
-            ?>
-
-            <h2>Error Logs</h2>
-            <?php
-            $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
-            $errors = $wpdb->get_results("SELECT * FROM $error_log_table ORDER BY time DESC");
-
-            echo '<table class="wp-list-table widefat fixed striped">';
-            echo '<thead><tr><th>ID</th><th>Error Message</th><th>Time</th></tr></thead>';
-            echo '<tbody>';
-
-            foreach ($errors as $error) {
-                echo '<tr>';
-                echo '<td>' . $error->id . '</td>';
-                echo '<td>' . $error->error_message . '</td>';
-                echo '<td>' . $error->time . '</td>';
-                echo '</tr>';
-            }
-
-            echo '</tbody></table>';
-            ?>
-        </div>
-        <?php
     }
 
     public function create_db() {
