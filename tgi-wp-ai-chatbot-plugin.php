@@ -5,7 +5,6 @@ Description: A WordPress plugin to add a floating ChatGPT chatbot icon.
 Version: 1.0
 Author: Zeeshan Ahmad
 Author URI: https://tabsgi.com
-Author Email : ziishanahmad@gmail.com
 */
 
 if (!defined('ABSPATH')) {
@@ -26,7 +25,8 @@ class TGI_WP_AI_Chatbot_Plugin {
     public function enqueue_scripts() {
         wp_enqueue_style('tgi-wp-ai-chatbot-font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
         wp_enqueue_style('tgi-wp-ai-chatbot-style', plugin_dir_url(__FILE__) . 'css/style.css');
-        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery'), null, true);
+        wp_enqueue_script('jquery-ui-draggable');
+        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable'), null, true);
         wp_localize_script('tgi-wp-ai-chatbot-script', 'tgi_chatgpt', array(
             'ajax_url' => admin_url('admin-ajax.php')
         ));
@@ -35,6 +35,7 @@ class TGI_WP_AI_Chatbot_Plugin {
     public function create_admin_menu() {
         add_menu_page('TGI WP AI Chatbot', 'AI Chatbot', 'manage_options', 'tgi-wp-ai-chatbot', array($this, 'admin_page'), 'dashicons-format-chat', 6);
     }
+
     public function add_chat_icon() {
         echo '
         <div id="tgi-chatgpt-icon" title="Talk to our AI chatbot"><i class="fas fa-comments"></i></div>
@@ -191,9 +192,6 @@ class TGI_WP_AI_Chatbot_Plugin {
         }
     }
     
-    
-    
-
     private function log_error($message) {
         global $wpdb;
         $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
