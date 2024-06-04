@@ -1,4 +1,8 @@
 jQuery(document).ready(function($) {
+    $('#tgi-chatgpt-icon').draggable({
+        containment: 'window'
+    });
+
     $('#tgi-chatgpt-icon').click(function() {
         $('#tgi-chatgpt-modal').show();
     });
@@ -28,6 +32,10 @@ jQuery(document).ready(function($) {
         $('#tgi-chatgpt-input').val('');
         scrollToBottom();
 
+        // Add animation for generating response
+        $('.tgi-chatgpt-messages').append('<div class="bot-response typing-indicator">...</div>');
+        scrollToBottom();
+
         $.ajax({
             url: tgi_chatgpt.ajax_url,
             method: 'POST',
@@ -36,6 +44,7 @@ jQuery(document).ready(function($) {
                 message: message
             },
             success: function(response) {
+                $('.typing-indicator').remove(); // Remove the typing indicator
                 if (response.success) {
                     $('.tgi-chatgpt-messages').append('<div class="bot-response">' + response.data + '</div>');
                 } else {
@@ -44,6 +53,7 @@ jQuery(document).ready(function($) {
                 scrollToBottom();
             },
             error: function() {
+                $('.typing-indicator').remove(); // Remove the typing indicator
                 $('.tgi-chatgpt-messages').append('<div class="bot-response">Error sending message.</div>');
                 scrollToBottom();
             }
