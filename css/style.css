@@ -16,9 +16,9 @@
 }
 
 #tgi-chatgpt-icon::after {
-    content: attr(title);
+    content: 'Talk to our AI Bot'; /* Permanent tooltip text */
     position: absolute;
-    left: -120px;
+    left: -140px; /* Adjust position as needed */
     top: 50%;
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.7);
@@ -26,11 +26,7 @@
     padding: 10px;
     border-radius: 5px;
     white-space: nowrap;
-    display: none;
-}
-
-#tgi-chatgpt-icon:hover::after {
-    display: block;
+    display: block; /* Always display the tooltip */
 }
 
 #tgi-chatgpt-modal {
@@ -40,7 +36,8 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
+    width: 600px; /* Increase width by 50% from 400px to 600px */
+    height: 600px; /* Increase height to match the new width */
     max-width: 90%;
     background: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -51,7 +48,7 @@
 .tgi-chatgpt-modal-content {
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: 100%; /* Use 100% height to fill the modal */
 }
 
 .tgi-chatgpt-messages {
@@ -83,7 +80,7 @@
 }
 
 #tgi-chatgpt-input {
-    width: calc(100% - 60px);
+    width: calc(100% - 80px); /* Adjust width for the new size */
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -93,7 +90,7 @@
 #tgi-chatgpt-send {
     position: absolute;
     right: 30px;
-    bottom: 20px;
+    bottom: 30px; /* Adjust bottom position */
     padding: 10px 20px;
     border: none;
     background-color: #0073aa;
