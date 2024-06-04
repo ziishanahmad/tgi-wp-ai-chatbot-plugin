@@ -105,3 +105,26 @@
 #tgi-chatgpt-send:hover {
     background-color: #005f8d;
 }
+
+.tgi-chatgpt-close {
+    cursor: pointer; /* Change cursor to pointer */
+}
+
+.typing-indicator {
+    display: inline-block;
+    width: 3em;
+    height: 1em;
+    text-align: center;
+    color: #333;
+}
+
+.typing-indicator::after {
+    content: '...';
+    animation: ellipsis 1s steps(5, end) infinite;
+}
+
+@keyframes ellipsis {
+    to {
+        width: 1.25em;
+    }
+}
