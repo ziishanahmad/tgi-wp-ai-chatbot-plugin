@@ -74,3 +74,4 @@ jQuery(document).ready(function($) {
         $('.tgi-chatgpt-messages').scrollTop($('.tgi-chatgpt-messages')[0].scrollHeight);
     }
 });
+
