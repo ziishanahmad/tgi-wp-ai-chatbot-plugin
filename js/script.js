@@ -45,15 +45,25 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 $('.typing-indicator').remove(); // Remove the typing indicator
+                console.log('Response received:', response); // Debugging log
                 if (response.success) {
-                    $('.tgi-chatgpt-messages').append('<div class="bot-response">' + response.data + '</div>');
+                    if (typeof marked !== 'undefined') {
+                        var htmlResponse = marked.parse(response.data); // Use marked.parse to convert Markdown to HTML
+                        console.log('Converted HTML:', htmlResponse); // Debugging log
+                        $('.tgi-chatgpt-messages').append('<div class="bot-response">' + htmlResponse + '</div>');
+                    } else {
+                        console.error('marked is not defined'); // Debugging log
+                        $('.tgi-chatgpt-messages').append('<div class="bot-response">' + response.data + '</div>');
+                    }
                 } else {
+                    console.log('Error response:', response.data); // Debugging log
                     $('.tgi-chatgpt-messages').append('<div class="bot-response">Error: ' + response.data + '</div>');
                 }
                 scrollToBottom();
             },
             error: function() {
                 $('.typing-indicator').remove(); // Remove the typing indicator
+                console.log('AJAX error'); // Debugging log
                 $('.tgi-chatgpt-messages').append('<div class="bot-response">Error sending message.</div>');
                 scrollToBottom();
             }
