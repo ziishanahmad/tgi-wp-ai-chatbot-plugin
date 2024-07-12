@@ -82,3 +82,27 @@ msgstr ""
 
 msgid "No message provided"
 msgstr ""
+
+msgid "Changes were saved."
+msgstr ""
+
+msgid "ChatGpt API Key"
+msgstr ""
+
+msgid "Assistant ID"
+msgstr ""
+
+msgid "Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if not want to enable the chat globally"
+msgstr ""
+
+msgid "Titles"
+msgstr ""
+
+msgid "Initial Messages"
+msgstr ""
+
+msgid "Type Your Message"
+msgstr ""
+
+msgid "Enter the new locale code (e.g., en_US):"
+msgstr ""

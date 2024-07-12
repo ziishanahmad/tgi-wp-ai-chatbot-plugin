@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: TGI WP AI Chatbot Plugin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-11 23:50+0000\n"
-"PO-Revision-Date: 2024-07-12 00:53+0000\n"
+"PO-Revision-Date: 2024-07-12 21:23+0000\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -81,3 +81,31 @@ msgstr "Failed to get assistant response"
 
 msgid "No message provided"
 msgstr "No message provided"
+
+msgid "Changes were saved."
+msgstr "Changes were saved."
+
+msgid "ChatGpt API Key"
+msgstr "ChatGpt API Key"
+
+msgid "Assistant ID"
+msgstr "Assistant ID"
+
+msgid ""
+"Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if "
+"not want to enable the chat globally"
+msgstr ""
+"Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if "
+"not want to enable the chat globally"
+
+msgid "Titles"
+msgstr "Chat box title"
+
+msgid "Initial Messages"
+msgstr "Initial message"
+
+msgid "Type Your Message"
+msgstr "Input field placeholder"
+
+msgid "Enter the new locale code (e.g., en_US):"
+msgstr "Enter the new locale code (e.g., en_US):"

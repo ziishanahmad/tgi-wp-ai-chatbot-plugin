@@ -16,13 +16,19 @@ function tgi_wp_ai_chatbot_load_textdomain() {
     load_plugin_textdomain('tgi-wp-ai-chatbot-plugin', false, dirname(plugin_basename(__FILE__)) . '/languages/');
 }
 
+// so you can use [tgi_chatgpt_icon] on any page
+add_action('init', 'tgi_chatgpt_add_shortcode');
+function tgi_chatgpt_add_shortcode() {
+    add_shortcode('tgi_chatgpt_icon', array('TGI_WP_AI_Chatbot_Plugin', 'add_chat_icon_shortcode'));
+}
+
 class TGI_WP_AI_Chatbot_Plugin {
 
     public function __construct() {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_menu', array($this, 'create_admin_menu'));
-        add_action('wp_footer', array($this, 'add_chat_icon'));
+        add_action('wp_footer', array($this, 'add_chat_icon_global'));
         add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
         add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
         add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
@@ -63,20 +69,28 @@ class TGI_WP_AI_Chatbot_Plugin {
     }
 
     public function admin_page() {
-        if (isset($_POST['tgi_chatgpt_api_key'])) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             check_admin_referer('tgi_chatgpt_nonce');
-            update_option('tgi_chatgpt_api_key', sanitize_text_field($_POST['tgi_chatgpt_api_key']));
-            echo '<div class="updated"><p>Changes were saved.</p></div>';
-        }
+            // Update API Key
+            if (isset($_POST['tgi_chatgpt_api_key'])) {
+                update_option('tgi_chatgpt_api_key', sanitize_text_field($_POST['tgi_chatgpt_api_key']));
+            }
     
-        if (isset($_POST['tgi_chatgpt_assistant_id'])) {
-            check_admin_referer('tgi_chatgpt_nonce');
-            update_option('tgi_chatgpt_assistant_id', sanitize_text_field($_POST['tgi_chatgpt_assistant_id']));
-            echo '<div class="updated"><p>Changes were saved.</p></div>';
+            // Update Assistant ID
+            if (isset($_POST['tgi_chatgpt_assistant_id'])) {
+                update_option('tgi_chatgpt_assistant_id', sanitize_text_field($_POST['tgi_chatgpt_assistant_id']));
+            }
+    
+            // Update ChatGPT Icon Enable Globally
+            $icon_enable_globally = isset($_POST['tgi_chatgpt_icon_enable_globally']) ? '1' : '0';
+            update_option('tgi_chatgpt_icon_enable_globally', $icon_enable_globally);
+    
+            echo '<div class="updated"><p>' . esc_html__('Changes were saved.', 'tgi-wp-ai-chatbot-plugin') . '</p></div>';
         }
     
         $api_key = get_option('tgi_chatgpt_api_key', '');
         $assistant_id = get_option('tgi_chatgpt_assistant_id', '');
+        $icon_enable_globally = get_option('tgi_chatgpt_icon_enable_globally', '0');
     
         ?>
         <div class="wrap">
@@ -85,16 +99,21 @@ class TGI_WP_AI_Chatbot_Plugin {
                 <?php wp_nonce_field('tgi_chatgpt_nonce'); ?>
                 <table class="form-table">
                     <tr valign="top">
-                        <th scope="row">ChatGPT API Key</th>
+                        <th scope="row"><?php esc_html_e('ChatGpt API Key', 'tgi-wp-ai-chatbot-plugin')?></th>
                         <td><input type="text" name="tgi_chatgpt_api_key" value="<?php echo esc_attr($api_key); ?>" size="50"/></td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Assistant ID</th>
+                        <th scope="row"><?php esc_html_e('Assistant ID', 'tgi-wp-ai-chatbot-plugin')?></th>
                         <td><input type="text" name="tgi_chatgpt_assistant_id" value="<?php echo esc_attr($assistant_id); ?>" size="50"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if not want to enable the chat globally', 'tgi-wp-ai-chatbot-plugin')?></th>
+                        <td><input type="checkbox" name="tgi_chatgpt_icon_enable_globally" value="<?php echo $icon_enable_globally; ?>" <?php checked($icon_enable_globally, '1'); ?> /></td>
                     </tr>
                 </table>
                 <?php submit_button(); ?>
             </form>
+
             <button id="clear-logs" class="button button-secondary"><?php esc_html_e('Clear All Chat and Error Logs', 'tgi-wp-ai-chatbot-plugin')?></button>
             <div id="clear-logs-message" style="margin-top: 20px;"></div>
             
@@ -218,26 +237,28 @@ class TGI_WP_AI_Chatbot_Plugin {
             )
         );
     
-        // Handle form submission
-        foreach ($localization_fields as $field_key => $default_values) {
-            if (isset($_POST[$field_key])) {
-                check_admin_referer('tgi_wp_ai_chatbot_settings');
-                $values = array_map('sanitize_text_field', $_POST[$field_key]);
-                update_option($field_key, $values);
-                echo '<div class="updated"><p>' . esc_html__(ucwords(str_replace('_', ' ', str_replace('tgi_wp_ai_chatbot', '', $field_key))) . ' settings saved.', 'tgi-wp-ai-chatbot-plugin') . '</p></div>';
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Handle form submission
+            foreach ($localization_fields as $field_key => $default_values) {
+                if (isset($_POST[$field_key])) {
+                    check_admin_referer('tgi_wp_ai_chatbot_settings');
+                    $values = array_map('sanitize_text_field', $_POST[$field_key]);
+                    update_option($field_key, $values);
+                }
             }
+
+            // Handle rate limit form submission
+            if (isset($_POST['tgi_wp_ai_chatbot_time_seconds'])) {
+                check_admin_referer('tgi_wp_ai_chatbot_settings');
+                $max_messages = intval($_POST['tgi_wp_ai_chatbot_max_messages']);
+                $time_seconds = intval($_POST['tgi_wp_ai_chatbot_time_seconds']);
+                update_option('tgi_wp_ai_chatbot_max_messages', $max_messages);
+                update_option('tgi_wp_ai_chatbot_time_seconds', $time_seconds);
+            }
+            
+            echo '<div class="updated"><p>' . esc_html__('Changes were saved.', 'tgi-wp-ai-chatbot-plugin') . '</p></div>';
         }
 
-        // Handle rate limit form submission
-        if (isset($_POST['tgi_wp_ai_chatbot_time_seconds'])) {
-            check_admin_referer('tgi_wp_ai_chatbot_settings');
-            $max_messages = intval($_POST['tgi_wp_ai_chatbot_max_messages']);
-            $time_seconds = intval($_POST['tgi_wp_ai_chatbot_time_seconds']);
-            update_option('tgi_wp_ai_chatbot_max_messages', $max_messages);
-            update_option('tgi_wp_ai_chatbot_time_seconds', $time_seconds);
-            echo '<div class="updated"><p>' . esc_html__('Rate Limit settings saved.', 'tgi-wp-ai-chatbot-plugin') . '</p></div>';
-        }
-    
         // Get existing messages or defaults
         $options = array();
         foreach ($localization_fields as $field_key => $default_values) {
@@ -255,7 +276,7 @@ class TGI_WP_AI_Chatbot_Plugin {
             <form method="post" id="tgi_wp_ai_chatbot_form">
                 <?php wp_nonce_field('tgi_wp_ai_chatbot_settings'); ?>
                 <?php foreach ($options as $field_key => $values) : ?>
-                    <h2><?php echo esc_html(ucwords(str_replace('_', ' ', str_replace('tgi_wp_ai_chatbot', '', $field_key) ))); ?></h2>
+                    <h2><?php esc_html_e(ucwords(str_replace('_', ' ', str_replace('tgi_wp_ai_chatbot_', '', $field_key) )), 'tgi-wp-ai-chatbot-plugin'); ?></h2>
                     <table class="form-table" role="presentation" id="<?php echo esc_attr($field_key); ?>_table">
                         <?php foreach ($values as $locale => $message) : ?>
                         <tr>
@@ -292,7 +313,7 @@ class TGI_WP_AI_Chatbot_Plugin {
         <script>
             document.querySelectorAll('.add-row').forEach(function(button) {
                 button.addEventListener('click', function() {
-                    var newLocale = prompt("Enter the new locale code (e.g., en_US):");
+                    var newLocale = prompt("<?php esc_html_e('Enter the new locale code (e.g., en_US):', 'tgi-wp-ai-chatbot-plugin'); ?>");
                     if (newLocale) {
                         var fieldKey = this.getAttribute('data-field-key');
                         var table = document.getElementById(fieldKey + '_table');
@@ -331,18 +352,30 @@ class TGI_WP_AI_Chatbot_Plugin {
         wp_send_json_success();
     }
 
+    public static function add_chat_icon_shortcode() {
+        $instance = new self();
+        return $instance->add_chat_icon();
+    }
+
+    public function add_chat_icon_global() {
+        $icon_enable_globally = get_option('tgi_chatgpt_icon_enable_globally', '0');
+        if($icon_enable_globally == 1) {
+            echo $this->add_chat_icon();
+        }
+    }
+
     public function add_chat_icon() {
         $locale = determine_locale();
         $titles = get_option('tgi_wp_ai_chatbot_titles', array());
         $title = isset($titles[$locale]) ? $titles[$locale] : '';
-        
+    
         $initial_messages = get_option('tgi_wp_ai_chatbot_initial_messages', array());
         $initial_message = isset($initial_messages[$locale]) ? $initial_messages[$locale] : '';
-
-        $type_your_messages = get_option('tgi_wp_ai_chatbot_type_your_message', array());
-        $type_your_message = isset($type_your_messages[$locale]) ? $initial_messages[$locale] : '';
     
-        echo '
+        $type_your_messages = get_option('tgi_wp_ai_chatbot_type_your_message', array());
+        $type_your_message = isset($type_your_messages[$locale]) ? $type_your_messages[$locale] : '';
+    
+        return '
         <div id="tgi-chatgpt-icon" title="AI"><i class="fas fa-comments"></i></div>
         <div id="tgi-chatgpt-modal" style="display: none;">
             <div class="tgi-chatgpt-modal-content">
@@ -353,11 +386,11 @@ class TGI_WP_AI_Chatbot_Plugin {
                 <div class="tgi-chatgpt-messages">
                     <span>' . esc_html($initial_message) . '</span>
                 </div>
-                <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr__($type_your_message) . '">
+                <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr($type_your_message) . '">
                 <button id="tgi-chatgpt-send">' . esc_html__('Send', 'tgi-wp-ai-chatbot-plugin') . '</button>
             </div>
         </div>';
-    }
+    }   
 
     private function add_message_to_thread($thread_id, $message) {
         $api_key = get_option('tgi_chatgpt_api_key');

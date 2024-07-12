@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: TGI WP AI Chatbot Plugin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-11 23:50+0000\n"
-"PO-Revision-Date: 2024-07-12 00:53+0000\n"
+"PO-Revision-Date: 2024-07-12 21:22+0000\n"
 "Last-Translator: \n"
 "Language-Team: 繁體中文\n"
 "Language: zh_TW\n"
@@ -81,3 +81,29 @@ msgstr "獲取助手回應失敗"
 
 msgid "No message provided"
 msgstr "未提供消息"
+
+msgid "Changes were saved."
+msgstr "變更已保存"
+
+msgid "ChatGpt API Key"
+msgstr "ChatGpt API Key"
+
+msgid "Assistant ID"
+msgstr "Assistant ID"
+
+msgid ""
+"Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if "
+"not want to enable the chat globally"
+msgstr "全域啟用助手對話圖標，如果不想全域啟用聊天，可以使用 [tgi_chatgpt_icon] 短代碼"
+
+msgid "Titles"
+msgstr "對話助手窗口標題"
+
+msgid "Initial Messages"
+msgstr "對話助手初始信息"
+
+msgid "Type Your Message"
+msgstr "空輸入框的顯示"
+
+msgid "Enter the new locale code (e.g., en_US):"
+msgstr "輸入新的語言代碼（例如，en_US）："
