@@ -1,0 +1,84 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: TGI WP AI Chatbot Plugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-07-11 23:50+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0.9\n"
+"X-Domain: tgi-wp-ai-chatbot-plugin"
+
+#. Description of the plugin
+msgid "A WordPress plugin to add a floating ChatGPT chatbot icon."
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://tabsgi.com"
+msgstr ""
+
+#. Name of the plugin
+msgid "TGI WP AI Chatbot Plugin"
+msgstr ""
+
+#. Author of the plugin
+msgid "Zeeshan Ahmad"
+msgstr ""
+
+msgid "AI Chat"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "TGI WP AI Chatbot Settings"
+msgstr ""
+
+msgid "Chat Records"
+msgstr ""
+
+msgid "Error Logs"
+msgstr ""
+
+msgid "Rate Limit Settings"
+msgstr ""
+
+msgid "Max Messages"
+msgstr ""
+
+msgid "Time (seconds)"
+msgstr ""
+
+msgid "Translations"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Add Language"
+msgstr ""
+
+msgid "Clear All Chat and Error Logs"
+msgstr ""
+
+msgid "Rate limit exceeded. Please wait a while before sending more messages."
+msgstr ""
+
+msgid "Failed to create new thread"
+msgstr ""
+
+msgid "Failed to add message to thread"
+msgstr ""
+
+msgid "Failed to get assistant response"
+msgstr ""
+
+msgid "No message provided"
+msgstr ""

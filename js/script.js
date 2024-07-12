@@ -3,8 +3,12 @@ jQuery(document).ready(function($) {
         containment: 'window'
     });
 
+    $("#tgi-chatgpt-modal").draggable({
+        handle: ".tgi-chat-header",
+    });
+
     $('#tgi-chatgpt-icon').click(function() {
-        $('#tgi-chatgpt-modal').show();
+        $('#tgi-chatgpt-modal').toggle();
     });
 
     $('.tgi-chatgpt-close').click(function() {
@@ -57,7 +61,7 @@ jQuery(document).ready(function($) {
                     }
                 } else {
                     console.log('Error response:', response.data); // Debugging log
-                    $('.tgi-chatgpt-messages').append('<div class="bot-response">Error: ' + response.data + '</div>');
+                    $('.tgi-chatgpt-messages').append('<div class="bot-response bot-error">' + response.data + '</div>');
                 }
                 scrollToBottom();
             },
