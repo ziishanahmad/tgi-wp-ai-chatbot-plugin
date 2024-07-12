@@ -537,7 +537,7 @@ class TGI_WP_AI_Chatbot_Plugin {
     }
 
     private function remove_annotation_links($text) {
-        $pattern = '/【\d+:\d+†[a-zA-Z]+】/';
+        $pattern = '/【.*?】/';
         return preg_replace($pattern, '', $text);
     }
 
