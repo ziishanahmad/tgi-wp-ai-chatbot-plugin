@@ -1,0 +1,109 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TGI WP AI Chatbot Plugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-07-11 23:50+0000\n"
+"PO-Revision-Date: 2024-07-12 21:22+0000\n"
+"Last-Translator: \n"
+"Language-Team: 繁體中文\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0.9\n"
+"X-Domain: tgi-wp-ai-chatbot-plugin"
+
+#. Description of the plugin
+msgid "A WordPress plugin to add a floating ChatGPT chatbot icon."
+msgstr "一個用於添加浮動ChatGPT聊天機器人圖示的WordPress外掛程式。"
+
+#. Author URI of the plugin
+msgid "https://tabsgi.com"
+msgstr "https://tabsgi.com"
+
+#. Name of the plugin
+msgid "TGI WP AI Chatbot Plugin"
+msgstr "TGI WP AI聊天機器人外掛程式"
+
+#. Author of the plugin
+msgid "Zeeshan Ahmad"
+msgstr "Zeeshan Ahmad"
+
+msgid "AI Chat"
+msgstr "AI聊天"
+
+msgid "Send"
+msgstr "發送"
+
+msgid "TGI WP AI Chatbot Settings"
+msgstr "TGI WP AI聊天機器人設置"
+
+msgid "Chat Records"
+msgstr "聊天記錄"
+
+msgid "Error Logs"
+msgstr "錯誤日誌"
+
+msgid "Rate Limit Settings"
+msgstr "速率限制設置"
+
+msgid "Max Messages"
+msgstr "最大消息數"
+
+msgid "Time (seconds)"
+msgstr "在此時間內（秒）"
+
+msgid "Translations"
+msgstr "翻譯"
+
+msgid "Remove"
+msgstr "刪除"
+
+msgid "Add Language"
+msgstr "新增語言"
+
+msgid "Clear All Chat and Error Logs"
+msgstr "清除所有聊天和錯誤日誌"
+
+msgid "Rate limit exceeded. Please wait a while before sending more messages."
+msgstr "超出速率限制。請稍候再發送更多消息。"
+
+msgid "Failed to create new thread"
+msgstr "創建對話失敗"
+
+msgid "Failed to add message to thread"
+msgstr "添加消息到對話失敗"
+
+msgid "Failed to get assistant response"
+msgstr "獲取助手回應失敗"
+
+msgid "No message provided"
+msgstr "未提供消息"
+
+msgid "Changes were saved."
+msgstr "變更已保存"
+
+msgid "ChatGpt API Key"
+msgstr "ChatGpt API Key"
+
+msgid "Assistant ID"
+msgstr "Assistant ID"
+
+msgid ""
+"Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if "
+"not want to enable the chat globally"
+msgstr "全域啟用助手對話圖標，如果不想全域啟用聊天，可以使用 [tgi_chatgpt_icon] 短代碼"
+
+msgid "Titles"
+msgstr "對話助手窗口標題"
+
+msgid "Initial Messages"
+msgstr "對話助手初始信息"
+
+msgid "Type Your Message"
+msgstr "空輸入框的顯示"
+
+msgid "Enter the new locale code (e.g., en_US):"
+msgstr "輸入新的語言代碼（例如，en_US）："
