@@ -83,19 +83,37 @@
     color:#b22222;
 }
 
+.tgi-chatgpt-input-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 #tgi-chatgpt-input {
     width: calc(100% - 80px); /* Adjust width for the new size */
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    margin-bottom: 10px;
 }
 
 #tgi-chatgpt-send {
-    position: absolute;
-    right: 30px;
-    bottom: 30px; /* Adjust bottom position */
     padding: 10px 20px;
+    border: none;
+    background-color: #0073aa;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tgi-chatgpt-tools-container{
+    padding-top: 10px;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+
+#tgi-chatgpt-reset {
+    padding: 5px 10px;
     border: none;
     background-color: #0073aa;
     color: white;
@@ -116,9 +134,13 @@
     cursor: move; /* Show move cursor to indicate draggable area */
 }
 
-.tgi-chatgpt-close {
-    cursor: pointer; /* Change cursor to pointer */
+.tgi-chatgpt-close-container {
     text-align: right;
+}
+
+.tgi-chatgpt-close {
+    padding-left: 1rem;
+    cursor: pointer; /* Change cursor to pointer */
 }
 
 .typing-indicator {

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: TGI WP AI Chatbot Plugin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-11 23:50+0000\n"
-"PO-Revision-Date: 2024-07-12 21:22+0000\n"
+"PO-Revision-Date: 2024-07-24 00:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: 繁體中文\n"
 "Language: zh_TW\n"
@@ -107,3 +107,21 @@ msgstr "空輸入框的顯示"
 
 msgid "Enter the new locale code (e.g., en_US):"
 msgstr "輸入新的語言代碼（例如，en_US）："
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Reset Confirm"
+msgstr "重置確認信息"
+
+msgid "Question Select Placeholder"
+msgstr "問題的初始選擇"
+
+msgid "Questions"
+msgstr "問題,每個問題用分號分隔。如果空白，則不顯示問題選擇框。"
+
+msgid "Others"
+msgstr "其它"
+
+msgid "Load previous chat when starts"
+msgstr "啓動時通過上次記錄的Session Cookie載入之前的對話"
