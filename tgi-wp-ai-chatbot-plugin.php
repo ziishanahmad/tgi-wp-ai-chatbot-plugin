@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Define the plugin version as a constant
+if (!defined('TGI_WP_AI_CHATBOT_VERSION')) {
+    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.0'); // Replace '1.0.0' with your actual plugin version
+}
+
 add_action('plugins_loaded', 'tgi_wp_ai_chatbot_load_textdomain');
 function tgi_wp_ai_chatbot_load_textdomain() {
     load_plugin_textdomain('tgi-wp-ai-chatbot-plugin', false, dirname(plugin_basename(__FILE__)) . '/languages/');
@@ -39,10 +44,10 @@ class TGI_WP_AI_Chatbot_Plugin {
 
     public function enqueue_scripts() {
         wp_enqueue_style('tgi-wp-ai-chatbot-font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
-        wp_enqueue_style('tgi-wp-ai-chatbot-style', plugin_dir_url(__FILE__) . 'css/style.css');
+        wp_enqueue_style('tgi-wp-ai-chatbot-style', plugin_dir_url(__FILE__) . 'css/style.css', array(), TGI_WP_AI_CHATBOT_VERSION);
         wp_enqueue_script('jquery-ui-draggable');
-        wp_enqueue_script('marked-js', plugin_dir_url(__FILE__) . 'js/marked.min.js', array(), null, true);
-        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable', 'marked-js'), null, true);
+        wp_enqueue_script('marked-js', plugin_dir_url(__FILE__) . 'js/marked.min.js', array(), TGI_WP_AI_CHATBOT_VERSION, true);
+        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable', 'marked-js'), TGI_WP_AI_CHATBOT_VERSION, true);
         wp_localize_script('tgi-wp-ai-chatbot-script', 'tgi_chatgpt', array(
             'ajax_url' => admin_url('admin-ajax.php')
         ));
