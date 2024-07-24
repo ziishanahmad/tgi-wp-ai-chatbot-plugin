@@ -15,6 +15,9 @@ The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT 
 - Multi language support
 - Rate limit support
 - Enable it in all pages or use short code [tgi_chatgpt_icon]
+- Allow session reload based on the session id cookie
+- Permanent chat clear which clears the database records and the OpenAI thread
+- Allow preset as many questions as you want in a select element
 
 ## Installation
 

@@ -106,3 +106,18 @@ msgstr ""
 
 msgid "Enter the new locale code (e.g., en_US):"
 msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Question Select Placeholder"
+msgstr ""
+
+msgid "Questions"
+msgstr ""
+
+msgid "Others"
+msgstr ""
+
+msgid "Load previous chat when starts"
+msgstr ""

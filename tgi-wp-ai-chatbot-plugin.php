@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Define the plugin version as a constant
+if (!defined('TGI_WP_AI_CHATBOT_VERSION')) {
+    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.0'); // Replace '1.0.0' with your actual plugin version
+}
+
 add_action('plugins_loaded', 'tgi_wp_ai_chatbot_load_textdomain');
 function tgi_wp_ai_chatbot_load_textdomain() {
     load_plugin_textdomain('tgi-wp-ai-chatbot-plugin', false, dirname(plugin_basename(__FILE__)) . '/languages/');
@@ -31,16 +36,18 @@ class TGI_WP_AI_Chatbot_Plugin {
         add_action('wp_footer', array($this, 'add_chat_icon_global'));
         add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
         add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
+        add_action('wp_ajax_tgi_load_session', array($this, 'load_session'));
+        add_action('wp_ajax_tgi_chatgpt_reset', array($this, 'reset_chat'));
         add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
         register_activation_hook(__FILE__, array($this, 'create_db'));
     }
 
     public function enqueue_scripts() {
         wp_enqueue_style('tgi-wp-ai-chatbot-font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
-        wp_enqueue_style('tgi-wp-ai-chatbot-style', plugin_dir_url(__FILE__) . 'css/style.css');
+        wp_enqueue_style('tgi-wp-ai-chatbot-style', plugin_dir_url(__FILE__) . 'css/style.css', array(), TGI_WP_AI_CHATBOT_VERSION);
         wp_enqueue_script('jquery-ui-draggable');
-        wp_enqueue_script('marked-js', plugin_dir_url(__FILE__) . 'js/marked.min.js', array(), null, true);
-        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable', 'marked-js'), null, true);
+        wp_enqueue_script('marked-js', plugin_dir_url(__FILE__) . 'js/marked.min.js', array(), TGI_WP_AI_CHATBOT_VERSION, true);
+        wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable', 'marked-js'), TGI_WP_AI_CHATBOT_VERSION, true);
         wp_localize_script('tgi-wp-ai-chatbot-script', 'tgi_chatgpt', array(
             'ajax_url' => admin_url('admin-ajax.php')
         ));
@@ -234,6 +241,26 @@ class TGI_WP_AI_Chatbot_Plugin {
                 'en_US' => esc_html__('Type your message...', 'tgi-wp-ai-chatbot-plugin'),
                 'zh_CN' => esc_html__('请输入您的问题...', 'tgi-wp-ai-chatbot-plugin'),
                 'zh_TW' => esc_html__('請輸入您的問題...', 'tgi-wp-ai-chatbot-plugin')
+            ),
+            'tgi_wp_ai_chatbot_reset' => array(
+                'en_US' => esc_html__('Reset', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_CN' => esc_html__('重置', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_TW' => esc_html__('重置', 'tgi-wp-ai-chatbot-plugin')
+            ),
+            'tgi_wp_ai_chatbot_reset_confirm' => array(
+                'en_US' => esc_html__('Are you sure you want to clear the chat? The chat will be deleted and lost forever.', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_CN' => esc_html__('您确定要清除聊天记录吗？聊天记录将被删除并且永久丢失。', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_TW' => esc_html__('您確定要清除聊天記錄嗎？聊天記錄將被刪除並且永久丟失。', 'tgi-wp-ai-chatbot-plugin')
+            ),
+            'tgi_wp_ai_chatbot_question_select_placeholder' => array(
+                'en_US' => esc_html__('Question Examples', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_CN' => esc_html__('提问样例', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_TW' => esc_html__('提問樣例', 'tgi-wp-ai-chatbot-plugin')
+            ),
+            'tgi_wp_ai_chatbot_questions' => array(
+                'en_US' => esc_html__('Who are you? Please use less than 10 words;What can you do? Please use less than 10 words.', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_CN' => esc_html__('你是谁？请用10字以内;你能做什么，请用10字以内。', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_TW' => esc_html__('你是誰？請用10字以内;你能做什麽，請用10字以内。', 'tgi-wp-ai-chatbot-plugin')
             )
         );
     
@@ -255,6 +282,10 @@ class TGI_WP_AI_Chatbot_Plugin {
                 update_option('tgi_wp_ai_chatbot_max_messages', $max_messages);
                 update_option('tgi_wp_ai_chatbot_time_seconds', $time_seconds);
             }
+    
+            // Handle enable loading of previous chat messages, which will also enable msg clear button
+            $load_previous_chat = isset($_POST['tgi_chatgpt_load_previous_chat']) ? '1' : '0';
+            update_option('tgi_chatgpt_load_previous_chat', $load_previous_chat);
             
             echo '<div class="updated"><p>' . esc_html__('Changes were saved.', 'tgi-wp-ai-chatbot-plugin') . '</p></div>';
         }
@@ -268,6 +299,7 @@ class TGI_WP_AI_Chatbot_Plugin {
         // Get rate limit settings or defaults
         $max_messages = get_option('tgi_wp_ai_chatbot_max_messages', 4);
         $time_seconds = get_option('tgi_wp_ai_chatbot_time_seconds', 120);
+        $load_previous_chat = get_option('tgi_chatgpt_load_previous_chat', '0');
 
         ?>
     
@@ -304,6 +336,14 @@ class TGI_WP_AI_Chatbot_Plugin {
                         <td>
                             <input name="tgi_wp_ai_chatbot_time_seconds" type="number" id="tgi_wp_ai_chatbot_time_seconds" value="<?php echo esc_attr($time_seconds); ?>" class="regular-text">
                         </td>
+                    </tr>
+                </table>
+
+                <h2><?php esc_html_e('Others', 'tgi-wp-ai-chatbot-plugin'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Load previous chat when starts', 'tgi-wp-ai-chatbot-plugin')?></th>
+                        <td><input type="checkbox" name="tgi_chatgpt_load_previous_chat" value="<?php echo $load_previous_chat; ?>" <?php checked($load_previous_chat, '1'); ?> /></td>
                     </tr>
                 </table>
                 
@@ -346,6 +386,16 @@ class TGI_WP_AI_Chatbot_Plugin {
         $chat_table = $wpdb->prefix . 'tgi_chatgpt_chats';
         $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
 
+        // get all unique thread ids form $chat_table
+        $thread_ids = $wpdb->get_col("SELECT DISTINCT thread_id FROM $chat_table");
+
+        // for each thread id, delete the thread
+        if (!empty($thread_ids)) {
+            foreach ($thread_ids as $thread_id) {
+                $this->delete_thread($thread_id);
+            }
+        }
+
         $wpdb->query("TRUNCATE TABLE $chat_table");
         $wpdb->query("TRUNCATE TABLE $error_log_table");
 
@@ -364,16 +414,36 @@ class TGI_WP_AI_Chatbot_Plugin {
         }
     }
 
+    private function get_locale_msg($key, $default) {
+        $locale = determine_locale();
+        $messages = get_option($key, array());
+        return isset($messages[$locale]) ? $messages[$locale] : $default;
+    }
+
     public function add_chat_icon() {
         $locale = determine_locale();
-        $titles = get_option('tgi_wp_ai_chatbot_titles', array());
-        $title = isset($titles[$locale]) ? $titles[$locale] : '';
-    
-        $initial_messages = get_option('tgi_wp_ai_chatbot_initial_messages', array());
-        $initial_message = isset($initial_messages[$locale]) ? $initial_messages[$locale] : '';
-    
-        $type_your_messages = get_option('tgi_wp_ai_chatbot_type_your_message', array());
-        $type_your_message = isset($type_your_messages[$locale]) ? $type_your_messages[$locale] : '';
+        $title = $this->get_locale_msg('tgi_wp_ai_chatbot_titles', 'AI Assistant');
+        $initial_message = $this->get_locale_msg('tgi_wp_ai_chatbot_initial_messages', '');
+        $type_your_message = $this->get_locale_msg('tgi_wp_ai_chatbot_type_your_message', '');
+        $reset_message = $this->get_locale_msg('tgi_wp_ai_chatbot_reset', '');
+        $questions = $this->get_locale_msg('tgi_wp_ai_chatbot_questions', '');
+        $question_placeholder = $this->get_locale_msg('tgi_wp_ai_chatbot_question_select_placeholder', '');
+        $reset_message_confirm = $this->get_locale_msg('tgi_wp_ai_chatbot_reset_confirm', '');
+
+        $reset_btn_html = '<span><button id="tgi-chatgpt-reset">' . esc_html($reset_message) . '</button></span> <script>';
+        $reset_btn_html .= 'window.reset_message_confirm = "'. $reset_message_confirm . '";';
+        $reset_btn_html .= 'window.load_previous_chat = '. get_option('tgi_chatgpt_load_previous_chat', '0') . ';';
+        $reset_btn_html .= '</script>';
+        
+        $question_html = '';
+        if(!empty($questions)) {
+            $questions = explode(';', $questions);
+            $question_html .= '<span><select id="tgi-chatgpt-questions" name="tgi-chatgpt-questions" class="tgi-chatgpt-questions"><option selected value="">' . $question_placeholder . '</option>';
+            foreach ($questions as $question) {
+                $question_html .= '<option value="' . esc_attr($question) . '">' . esc_html($question) . '</option>';
+            }
+            $question_html .= '</select></span>';    
+        }
     
         return '
         <div id="tgi-chatgpt-icon" title="AI"><i class="fas fa-comments"></i></div>
@@ -381,13 +451,16 @@ class TGI_WP_AI_Chatbot_Plugin {
             <div class="tgi-chatgpt-modal-content">
                 <div class="tgi-chat-header">
                     <span>' . esc_html($title) . '</span>
-                    <span class="tgi-chatgpt-close">&times;</span>
+                    <span class="tgi-chatgpt-close-container"> '. $reset_btn_html . '<span class="tgi-chatgpt-close">&times;</span> </span>
                 </div>
                 <div class="tgi-chatgpt-messages">
                     <span>' . esc_html($initial_message) . '</span>
                 </div>
-                <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr($type_your_message) . '">
-                <button id="tgi-chatgpt-send">' . esc_html__('Send', 'tgi-wp-ai-chatbot-plugin') . '</button>
+                <div class="tgi-chatgpt-input-container">
+                    <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr($type_your_message) . '">
+                    <button id="tgi-chatgpt-send">' . esc_html__('Send', 'tgi-wp-ai-chatbot-plugin') . '</button>
+                </div>
+                <div class="tgi-chatgpt-tools-container">' . $question_html . '</div>
             </div>
         </div>';
     }   
@@ -567,6 +640,35 @@ class TGI_WP_AI_Chatbot_Plugin {
         }
     }
 
+    private function delete_thread($thread_id) {
+        $api_key = get_option('tgi_chatgpt_api_key');
+        $api_url = "https://api.openai.com/v1/threads/{$thread_id}";
+
+        $response = wp_remote_request($api_url, array(
+            'method' => 'DELETE',
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type' => 'application/json',
+                'OpenAI-Beta' => 'assistants=v2'
+            )
+        ));
+        
+        if (is_wp_error($response)) {
+            $this->log_error($response->get_error_message());
+            return false;
+        }
+
+        $response_body = wp_remote_retrieve_body($response);
+        $response_code = wp_remote_retrieve_response_code($response);
+
+        if ($response_code === 200) {
+            return true;
+        } else {
+            $this->log_error("Failed to delete thread: " . $response_body);
+            return false;
+        }
+    }
+
     private function get_thread_id_for_session($session_id) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'tgi_chatgpt_chats';
@@ -668,6 +770,61 @@ class TGI_WP_AI_Chatbot_Plugin {
         }
     }
 
+    public function reset_chat() {
+        if (!isset($_COOKIE['tgi_chatgpt_session_id'])) {
+            return;
+        }
+        
+        $session_id = sanitize_text_field($_COOKIE['tgi_chatgpt_session_id']);
+        if (empty($session_id)) {
+            return;
+        }
+
+        $assistant_id = get_option('tgi_chatgpt_assistant_id');
+        $thread_id = $this->get_thread_id_for_session($session_id);
+
+        if (!$thread_id) {
+            return;
+        }
+
+        $response = $this->delete_thread($thread_id, $assistant_id);
+        if ($response) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'tgi_chatgpt_chats';
+            $wpdb->delete(
+                $table_name,
+                array(
+                    'session_id' => $session_id,
+                ),
+                array(
+                    '%s' // Data type format (string in this case)
+                )
+            );
+
+            wp_send_json_success($response);
+        } else {
+            wp_send_json_error(__('Failed to get assistant response', 'tgi-wp-ai-chatbot-plugin'));
+        }
+    }
+
+    public function load_session() {
+        if (!isset($_COOKIE['tgi_chatgpt_session_id'])) {
+            return;
+        }
+        
+        $session_id = sanitize_text_field($_COOKIE['tgi_chatgpt_session_id']);
+        if (empty($session_id)) {
+            return;
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'tgi_chatgpt_chats';
+
+        #read all rows from table where session_id is $session_id
+        $result = $wpdb->get_results($wpdb->prepare("SELECT user_message, bot_response FROM $table_name WHERE session_id = %s order by id", $session_id));
+        wp_send_json_success($result);
+    }
+
     private function log_error($message) {
         global $wpdb;
         $error_log_table = $wpdb->prefix . 'tgi_chatgpt_error_logs';
@@ -692,14 +849,16 @@ class TGI_WP_AI_Chatbot_Plugin {
             thread_id varchar(255) NOT NULL,
             user_message text NOT NULL,
             bot_response text NOT NULL,
-            time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-            PRIMARY KEY  (id)
+            time datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            INDEX (session_id),
+            INDEX (thread_id)
         ) $charset_collate;
 
         CREATE TABLE $error_log_table (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             error_message text NOT NULL,
-            time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+            time datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id)
         ) $charset_collate;";
 
