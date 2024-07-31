@@ -1,7 +1,7 @@
 # TGI WP AI Chatbot Plugin
 
 ## Description
-The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT chatbot icon to your website. This plugin allows users to interact with an AI chatbot, which can provide responses using the OpenAI API.
+The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT chatbot icon to your website. This plugin allows users to interact with an AI chatbot, which can provide responses using the OpenAI API. It can also hook up with Microsoft Azure Speech and Avatar service to enable audio/video chat.
 
 ## Features
 - Floating chat icon on the right side of the screen.
@@ -18,6 +18,7 @@ The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT 
 - Allow session reload based on the session id cookie
 - Permanent chat clear which clears the database records and the OpenAI thread
 - Allow preset as many questions as you want in a select element
+- Allow use Microphone + Microsoft Azure Speech Cognitive Service and Avatar for Audio/Video Chat
 
 ## Installation
 
@@ -51,8 +52,10 @@ The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT 
 2. **Enter API Credentials**:
     - **ChatGPT API Key**: Enter your OpenAI API key.
     - **Assistant ID**: Enter your Assistant ID from OpenAI.
+3. **Enable ChatGPT Icon Globally, you can use [tgi_chatgpt_icon] shortcode if not want to enable the chat globally**:
+    - Enable globally or use short code [tgi_chatgpt_icon]
 
-3. **Save Changes**:
+4. **Save Changes**:
     - Click `Save Changes` to store your configuration settings.
 
 ### Interacting with the Chatbot
@@ -80,6 +83,18 @@ The TGI WP AI Chatbot Plugin is a WordPress plugin that adds a floating ChatGPT 
     - Navigate to `AI Chatbot > Error Logs` in the WordPress admin menu.
     - View logs of any errors that occurred during chat interactions.
     - Use this information to troubleshoot issues with the plugin or API interactions.
+
+### Settings
+1. **Translations**:
+   - locale translations for appearance text
+
+2. **Rate Limit**:
+   - how many chats can be done within a limited time
+
+3. **Microsoft Avatar / Speech Recognition / Voice Chat Settings**:
+   - the Microsoft Azure API keys and speech avatar settings, please see https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/samples/js/browser/avatar for more information on what the settings means
+
+
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

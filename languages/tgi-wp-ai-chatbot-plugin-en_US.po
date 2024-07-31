@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: TGI WP AI Chatbot Plugin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-11 23:50+0000\n"
-"PO-Revision-Date: 2024-07-24 00:05+0000\n"
+"PO-Revision-Date: 2024-07-31 19:31+0000\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.6.2; wp-6.0.9\n"
+"X-Loco-Version: 2.6.2; wp-6.6.1\n"
 "X-Domain: tgi-wp-ai-chatbot-plugin"
 
 #. Description of the plugin
@@ -129,3 +129,69 @@ msgstr "Others"
 
 msgid "Load previous chat when starts"
 msgstr "When starts, load previous chats based on the saved session cookie."
+
+msgid "Microsoft Avatar Settings"
+msgstr "Microsoft Avatar Settings"
+
+msgid ""
+"If you want to use Microsoft Azure Avatar and voice recognition service, "
+"please provide the following settings. Voice can be chosen in https://docs."
+"microsoft.com/en-us/azure/cognitive-services/speech-service/language-support"
+msgstr ""
+"If you want to use Microsoft Azure Avatar and voice recognition service, "
+"please provide the following settings. Voice can be chosen in https://docs."
+"microsoft.com/en-us/azure/cognitive-services/speech-service/language-support"
+
+msgid "Azure Speech Region, e.g. westus2, empty to disable avatar"
+msgstr "Azure Speech Region, e.g. westus2, empty to disable avatar"
+
+msgid "Azure Speech Key"
+msgstr "Azure Speech Key"
+
+msgid ""
+"Azure Speech Voice,e.g. en-US-AvaMultilingualNeural, zh-CN-"
+"XiaoyuMultilingualNeural"
+msgstr ""
+"Azure Speech Voice,e.g. en-US-AvaMultilingualNeural, zh-CN-"
+"XiaoyuMultilingualNeural"
+
+msgid ""
+"Azure Speech Locale, multiple languages separated by comma. e.g. zh_CN,en_US"
+msgstr ""
+"Azure Speech Locale, multiple languages separated by comma. e.g. zh_CN,en_US"
+
+msgid "Azure Speech Character, e.g. lisa"
+msgstr "Azure Speech Character, e.g. lisa"
+
+msgid "Azure Speech Avatar Style, e.g. casual-sitting"
+msgstr "Azure Speech Avatar Style, e.g. casual-sitting"
+
+msgid "Open Avatar"
+msgstr "Open Avatar"
+
+msgid "Close Avatar"
+msgstr "Close Avatar"
+
+msgid "Azure Speech Private Endpoint (Empty if not needed)"
+msgstr "Azure Speech Private Endpoint (Empty if not needed)"
+
+msgid "Azure Speech Private Endpoint Custom Name (Empty if not needed)"
+msgstr "Azure Speech Private Endpoint Custom Name (Empty if not needed)"
+
+msgid ""
+"Azure Speech Avatar Local Video, e.g. https://www.example.com/wp-"
+"content/uploads/2022/01/lisa-casual-sitting-idle.mp4"
+msgstr ""
+"Azure Speech Avatar Local Video, e.g. https://www.example.com/wp-"
+"content/uploads/2022/01/lisa-casual-sitting-idle.mp4"
+
+msgid "Azure Speech Personal Voice Speaker Profile ID (Empty if not needed)"
+msgstr "Azure Speech Personal Voice Speaker Profile ID (Empty if not needed)"
+
+msgid ""
+"Azure Speech Custom Voice Deployment ID (Endpoint ID) (Empty if not needed)"
+msgstr ""
+"Azure Speech Custom Voice Deployment ID (Endpoint ID) (Empty if not needed)"
+
+msgid "Azure Speech Avatar Customized (Uncheck if not customized)"
+msgstr "Azure Speech Avatar Customized (Uncheck if not customized)"
