@@ -121,3 +121,51 @@ msgstr ""
 
 msgid "Load previous chat when starts"
 msgstr ""
+
+msgid "Microsoft Avatar Settings"
+msgstr ""
+
+msgid "If you want to use Microsoft Azure Avatar and voice recognition service, please provide the following settings. Voice can be chosen in https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support"
+msgstr ""
+
+msgid "Azure Speech Region, e.g. westus2, empty to disable avatar"
+msgstr ""
+
+msgid "Azure Speech Key"
+msgstr ""
+
+msgid "Azure Speech Voice,e.g. en-US-AvaMultilingualNeural, zh-CN-XiaoyuMultilingualNeural"
+msgstr ""
+
+msgid "Azure Speech Locale, multiple languages separated by comma. e.g. zh_CN,en_US"
+msgstr ""
+
+msgid "Azure Speech Character, e.g. lisa"
+msgstr ""
+
+msgid "Azure Speech Avatar Style, e.g. casual-sitting"
+msgstr ""
+
+msgid "Open Avatar"
+msgstr ""
+
+msgid "Close Avatar"
+msgstr ""
+
+msgid "Azure Speech Private Endpoint (Empty if not needed)"
+msgstr ""
+
+msgid "Azure Speech Private Endpoint Custom Name (Empty if not needed)"
+msgstr ""
+
+msgid "Azure Speech Avatar Local Video, e.g. https://www.example.com/wp-content/uploads/2022/01/lisa-casual-sitting-idle.mp4"
+msgstr ""
+
+msgid "Azure Speech Personal Voice Speaker Profile ID (Empty if not needed)"
+msgstr ""
+
+msgid "Azure Speech Custom Voice Deployment ID (Endpoint ID) (Empty if not needed)"
+msgstr ""
+
+msgid "Azure Speech Avatar Customized (Uncheck if not customized)"
+msgstr ""

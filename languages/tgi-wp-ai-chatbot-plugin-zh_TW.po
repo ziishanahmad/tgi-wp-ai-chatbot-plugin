@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: TGI WP AI Chatbot Plugin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-11 23:50+0000\n"
-"PO-Revision-Date: 2024-07-24 00:05+0000\n"
+"PO-Revision-Date: 2024-07-31 19:31+0000\n"
 "Last-Translator: \n"
 "Language-Team: 繁體中文\n"
 "Language: zh_TW\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.6.2; wp-6.0.9\n"
+"X-Loco-Version: 2.6.2; wp-6.6.1\n"
 "X-Domain: tgi-wp-ai-chatbot-plugin"
 
 #. Description of the plugin
@@ -125,3 +125,64 @@ msgstr "其它"
 
 msgid "Load previous chat when starts"
 msgstr "啓動時通過上次記錄的Session Cookie載入之前的對話"
+
+msgid "Microsoft Avatar Settings"
+msgstr "微軟文字轉語音虛擬人偶設置"
+
+msgid ""
+"If you want to use Microsoft Azure Avatar and voice recognition service, "
+"please provide the following settings. Voice can be chosen in https://docs."
+"microsoft.com/en-us/azure/cognitive-services/speech-service/language-support"
+msgstr ""
+"如果你想使用微軟Azure文字轉語音虛擬人偶服務，請提供以下設置, 聲音可以在這裏選擇 https://docs.microsoft.com/en-"
+"us/azure/cognitive-services/speech-service/language-support"
+
+msgid "Azure Speech Region, e.g. westus2, empty to disable avatar"
+msgstr "Azure 語音服務區域, 如 westus2"
+
+msgid "Azure Speech Key"
+msgstr "Azure 語音密鑰"
+
+msgid ""
+"Azure Speech Voice,e.g. en-US-AvaMultilingualNeural, zh-CN-"
+"XiaoyuMultilingualNeural"
+msgstr "Azure 語言聲音，如en-US-AvaMultilingualNeural，zh-CN-XiaoyuMultilingualNeural"
+
+msgid ""
+"Azure Speech Locale, multiple languages separated by comma. e.g. zh_CN,en_US"
+msgstr "Azure 語音辨識區域，多語言用逗號分隔。如 zh_CN,en_US"
+
+msgid "Azure Speech Character, e.g. lisa"
+msgstr "Azure 語音虛擬人偶名稱，如 lisa"
+
+msgid "Azure Speech Avatar Style, e.g. casual-sitting"
+msgstr "Azure 語音虛擬人偶風格，如 casual-sitting"
+
+msgid "Open Avatar"
+msgstr "打開虛擬人偶"
+
+msgid "Close Avatar"
+msgstr "關閉虛擬人偶"
+
+msgid "Azure Speech Private Endpoint (Empty if not needed)"
+msgstr "Azure 語音私有端點（如果不需要則留空）"
+
+msgid "Azure Speech Private Endpoint Custom Name (Empty if not needed)"
+msgstr "Azure 語音私有端點自訂名稱（如果不需要則留空）"
+
+msgid ""
+"Azure Speech Avatar Local Video, e.g. https://www.example.com/wp-"
+"content/uploads/2022/01/lisa-casual-sitting-idle.mp4"
+msgstr ""
+"Azure 語音虛擬人偶本地視頻，如 https://www.example.com/wp-content/uploads/2022/01/lisa-"
+"casual-sitting-idle.mp4"
+
+msgid "Azure Speech Personal Voice Speaker Profile ID (Empty if not needed)"
+msgstr "Azure 語音個人語音說話人設定檔 ID（如果不需要則留空）"
+
+msgid ""
+"Azure Speech Custom Voice Deployment ID (Endpoint ID) (Empty if not needed)"
+msgstr "Azure 語音自訂語音部署 ID（端點 ID）(如果不需要則留空)"
+
+msgid "Azure Speech Avatar Customized (Uncheck if not customized)"
+msgstr "Azure 語音虛擬人偶是自訂的（如果不自訂則取消勾選）"
