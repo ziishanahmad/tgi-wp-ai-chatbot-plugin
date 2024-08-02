@@ -305,6 +305,9 @@ jQuery(document).ready(function($) {
     }
 
     window.stopSpeaking = () => {
+        var audioElement = document.getElementById('audioPlayer');
+        audioElement.pause();
+
         spokenTextQueue = []
         avatarSynthesizer.stopSpeakingAsync().then(
             () => {
@@ -384,6 +387,8 @@ jQuery(document).ready(function($) {
             speechRecognizer = null;
             console.log("Speech recognizer stopped.");
         }
+
+        window.stopSpeaking();
 
         disconnectAvatar();
 

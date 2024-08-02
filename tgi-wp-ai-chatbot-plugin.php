@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 // Define the plugin version as a constant, please increment it if js/css files are updated
 if (!defined('TGI_WP_AI_CHATBOT_VERSION')) {
-    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.1');
+    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.2');
 }
 
 add_action('plugins_loaded', 'tgi_wp_ai_chatbot_load_textdomain');
@@ -34,13 +34,20 @@ class TGI_WP_AI_Chatbot_Plugin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_menu', array($this, 'create_admin_menu'));
         add_action('wp_footer', array($this, 'add_chat_icon_global'));
-        add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
-        add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
-        add_action('wp_ajax_tgi_load_session', array($this, 'load_session'));
-        add_action('wp_ajax_tgi_chatgpt_reset', array($this, 'reset_chat'));
         add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
 
+        // following actions are for both logged in and non-logged in users
+        add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
+        add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
+        
+        add_action('wp_ajax_tgi_load_session', array($this, 'load_session'));
+        add_action( 'wp_ajax_nopriv_tgi_load_session', array($this, 'load_session'));
+        
+        add_action('wp_ajax_tgi_chatgpt_reset', array($this, 'reset_chat'));
+        add_action( 'wp_ajax_nopriv_tgi_chatgpt_reset', array($this, 'reset_chat'));
+
         add_action( 'wp_ajax_generate_azure_token', array($this, 'generate_azure_token'));
+        add_action( 'wp_ajax_nopriv_generate_azure_token', array($this, 'generate_azure_token'));
 
         register_activation_hook(__FILE__, array($this, 'create_db'));
     }
@@ -975,11 +982,13 @@ class TGI_WP_AI_Chatbot_Plugin {
 
     public function load_session() {
         if (!isset($_COOKIE['tgi_chatgpt_session_id'])) {
+            wp_send_json_success();
             return;
         }
         
         $session_id = sanitize_text_field($_COOKIE['tgi_chatgpt_session_id']);
         if (empty($session_id)) {
+            wp_send_json_success();
             return;
         }
 
@@ -996,7 +1005,7 @@ class TGI_WP_AI_Chatbot_Plugin {
         $region = get_option( 'tgi_wp_ai_azure_speech_region' );
         $endpoint = "https://$region.api.cognitive.microsoft.com/sts/v1.0/issueToken";
     
-        if ( ! $api_key || ! $endpoint ) {
+        if ( ! $api_key || ! $region ) {
             wp_send_json_error( array( 'message' => 'Azure Token Plugin settings are missing.' ), 400 );
             wp_die();
         }
