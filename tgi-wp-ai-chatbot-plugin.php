@@ -11,9 +11,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Define the plugin version as a constant
+// Define the plugin version as a constant, please increment it if js/css files are updated
 if (!defined('TGI_WP_AI_CHATBOT_VERSION')) {
-    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.0'); // Replace '1.0.0' with your actual plugin version
+    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.2');
 }
 
 add_action('plugins_loaded', 'tgi_wp_ai_chatbot_load_textdomain');
@@ -34,11 +34,21 @@ class TGI_WP_AI_Chatbot_Plugin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('admin_menu', array($this, 'create_admin_menu'));
         add_action('wp_footer', array($this, 'add_chat_icon_global'));
+        add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
+
+        // following actions are for both logged in and non-logged in users
         add_action('wp_ajax_tgi_chatgpt_send', array($this, 'handle_chat'));
         add_action('wp_ajax_nopriv_tgi_chatgpt_send', array($this, 'handle_chat'));
+        
         add_action('wp_ajax_tgi_load_session', array($this, 'load_session'));
+        add_action( 'wp_ajax_nopriv_tgi_load_session', array($this, 'load_session'));
+        
         add_action('wp_ajax_tgi_chatgpt_reset', array($this, 'reset_chat'));
-        add_action('wp_ajax_clear_tgi_chat_logs', array($this, 'clear_logs'));
+        add_action( 'wp_ajax_nopriv_tgi_chatgpt_reset', array($this, 'reset_chat'));
+
+        add_action( 'wp_ajax_generate_azure_token', array($this, 'generate_azure_token'));
+        add_action( 'wp_ajax_nopriv_generate_azure_token', array($this, 'generate_azure_token'));
+
         register_activation_hook(__FILE__, array($this, 'create_db'));
     }
 
@@ -48,6 +58,10 @@ class TGI_WP_AI_Chatbot_Plugin {
         wp_enqueue_script('jquery-ui-draggable');
         wp_enqueue_script('marked-js', plugin_dir_url(__FILE__) . 'js/marked.min.js', array(), TGI_WP_AI_CHATBOT_VERSION, true);
         wp_enqueue_script('tgi-wp-ai-chatbot-script', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery', 'jquery-ui-draggable', 'marked-js'), TGI_WP_AI_CHATBOT_VERSION, true);
+
+        wp_enqueue_script('chatbot-azure_speech_sdk', 'https://aka.ms/csspeech/jsbrowserpackageraw', array('tgi-wp-ai-chatbot-script'));
+        wp_enqueue_script('tgi-wp-ai-chatbot-avatar-script', plugin_dir_url(__FILE__) . 'js/chat.js', array('chatbot-azure_speech_sdk'), TGI_WP_AI_CHATBOT_VERSION, true);
+
         wp_localize_script('tgi-wp-ai-chatbot-script', 'tgi_chatgpt', array(
             'ajax_url' => admin_url('admin-ajax.php')
         ));
@@ -282,7 +296,26 @@ class TGI_WP_AI_Chatbot_Plugin {
                 update_option('tgi_wp_ai_chatbot_max_messages', $max_messages);
                 update_option('tgi_wp_ai_chatbot_time_seconds', $time_seconds);
             }
-    
+
+            // Handle azure speech avatar settings
+            if (isset($_POST['tgi_wp_ai_azure_speech_region'])) {
+                check_admin_referer('tgi_wp_ai_chatbot_settings');
+                update_option('tgi_wp_ai_azure_speech_region', $_POST['tgi_wp_ai_azure_speech_region']);
+                update_option('tgi_wp_ai_azure_speech_key', $_POST['tgi_wp_ai_azure_speech_key']);
+                update_option('tgi_wp_ai_azure_speech_private_endpoint', $_POST['tgi_wp_ai_azure_speech_private_endpoint']);
+                update_option('tgi_wp_ai_azure_speech_voice', $_POST['tgi_wp_ai_azure_speech_voice']);
+                update_option('tgi_wp_ai_azure_speech_custom_voice_endpoint_id', $_POST['tgi_wp_ai_azure_speech_custom_voice_endpoint_id']);
+                update_option('tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id', $_POST['tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id']);
+                update_option('tgi_wp_ai_azure_speech_locale', $_POST['tgi_wp_ai_azure_speech_locale']);
+                update_option('tgi_wp_ai_azure_speech_character', $_POST['tgi_wp_ai_azure_speech_character']);
+                update_option('tgi_wp_ai_azure_speech_avatar_style', $_POST['tgi_wp_ai_azure_speech_avatar_style']);
+                
+                $azure_speech_avatar_customized = isset($_POST['tgi_wp_ai_azure_speech_avatar_customized']) ? '1' : '0';
+                update_option('tgi_wp_ai_azure_speech_avatar_customized', $azure_speech_avatar_customized);
+                
+                update_option('tgi_wp_ai_azure_speech_avatar_local_video', $_POST['tgi_wp_ai_azure_speech_avatar_local_video']);
+            }
+            
             // Handle enable loading of previous chat messages, which will also enable msg clear button
             $load_previous_chat = isset($_POST['tgi_chatgpt_load_previous_chat']) ? '1' : '0';
             update_option('tgi_chatgpt_load_previous_chat', $load_previous_chat);
@@ -300,6 +333,18 @@ class TGI_WP_AI_Chatbot_Plugin {
         $max_messages = get_option('tgi_wp_ai_chatbot_max_messages', 4);
         $time_seconds = get_option('tgi_wp_ai_chatbot_time_seconds', 120);
         $load_previous_chat = get_option('tgi_chatgpt_load_previous_chat', '0');
+        
+        $azure_speech_region = get_option('tgi_wp_ai_azure_speech_region', '');
+        $azure_speech_key = get_option('tgi_wp_ai_azure_speech_key', '');
+        $azure_speech_private_endpoint = get_option('tgi_wp_ai_azure_speech_private_endpoint', '');
+        $azure_speech_voice = get_option('tgi_wp_ai_azure_speech_voice', '');
+        $azure_speech_custom_voice_endpoint_id = get_option('tgi_wp_ai_azure_speech_custom_voice_endpoint_id', '');
+        $azure_speech_personal_voice_speaker_profile_id = get_option('tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id', '');
+        $azure_speech_locale = get_option('tgi_wp_ai_azure_speech_locale', '');
+        $azure_speech_character = get_option('tgi_wp_ai_azure_speech_character', '');
+        $azure_speech_avatar_style = get_option('tgi_wp_ai_azure_speech_avatar_style', '');
+        $azure_speech_avatar_customized = get_option('tgi_wp_ai_azure_speech_avatar_customized', '0');
+        $azure_speech_avatar_local_video = get_option('tgi_wp_ai_azure_speech_avatar_local_video', plugin_dir_url(__FILE__) . 'video/lisa-casual-sitting-idle.mp4');
 
         ?>
     
@@ -335,6 +380,75 @@ class TGI_WP_AI_Chatbot_Plugin {
                         <th scope="row"><label for="tgi_wp_ai_chatbot_time_seconds"><?php esc_html_e('Time (seconds)', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
                         <td>
                             <input name="tgi_wp_ai_chatbot_time_seconds" type="number" id="tgi_wp_ai_chatbot_time_seconds" value="<?php echo esc_attr($time_seconds); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                </table>
+
+                <h2><?php esc_html_e('Microsoft Avatar Settings', 'tgi-wp-ai-chatbot-plugin'); ?></h2>
+                <p><?php esc_html_e('If you want to use Microsoft Azure Avatar and voice recognition service, please provide the following settings. Voice can be chosen in https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support', 'tgi-wp-ai-chatbot-plugin'); ?></p>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_region"><?php esc_html_e('Azure Speech Region, e.g. westus2, empty to disable avatar', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_region" type="text" id="tgi_wp_ai_azure_speech_region" value="<?php echo esc_attr($azure_speech_region); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_key"><?php esc_html_e('Azure Speech Key', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_key" type="text" id="tgi_wp_ai_azure_speech_key" value="<?php echo esc_attr($azure_speech_key); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_private_endpoint"><?php esc_html_e('Azure Speech Private Endpoint (Empty if not needed)', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_private_endpoint" type="text" id="tgi_wp_ai_azure_speech_private_endpoint" value="<?php echo esc_attr($azure_speech_private_endpoint); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_voice"><?php esc_html_e('Azure Speech Voice,e.g. en-US-AvaMultilingualNeural, zh-CN-XiaoyuMultilingualNeural', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_voice" type="text" id="tgi_wp_ai_azure_speech_voice" value="<?php echo esc_attr($azure_speech_voice); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_custom_voice_endpoint_id"><?php esc_html_e('Azure Speech Custom Voice Deployment ID (Endpoint ID) (Empty if not needed)', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_custom_voice_endpoint_id" type="text" id="tgi_wp_ai_azure_speech_custom_voice_endpoint_id" value="<?php echo esc_attr($azure_speech_custom_voice_endpoint_id); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id"><?php esc_html_e('Azure Speech Personal Voice Speaker Profile ID (Empty if not needed)', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id" type="text" id="tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id" value="<?php echo esc_attr($azure_speech_personal_voice_speaker_profile_id); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_locale"><?php esc_html_e('Azure Speech Locale, multiple languages separated by comma. e.g. zh_CN,en_US', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_locale" type="text" id="tgi_wp_ai_azure_speech_locale" value="<?php echo esc_attr($azure_speech_locale); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_character"><?php esc_html_e('Azure Speech Character, e.g. lisa', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_character" type="text" id="tgi_wp_ai_azure_speech_character" value="<?php echo esc_attr($azure_speech_character); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_avatar_style"><?php esc_html_e('Azure Speech Avatar Style, e.g. casual-sitting', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_avatar_style" type="text" id="tgi_wp_ai_azure_speech_avatar_style" value="<?php echo esc_attr($azure_speech_avatar_style); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Azure Speech Avatar Customized (Uncheck if not customized)', 'tgi-wp-ai-chatbot-plugin')?></th>
+                        <td><input type="checkbox" name="tgi_wp_ai_azure_speech_avatar_customized" value="<?php echo $azure_speech_avatar_customized; ?>" <?php checked($azure_speech_avatar_customized, '1'); ?> /></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="tgi_wp_ai_azure_speech_avatar_local_video"><?php esc_html_e('Azure Speech Avatar Local Video, e.g. https://www.example.com/wp-content/uploads/2022/01/lisa-casual-sitting-idle.mp4', 'tgi-wp-ai-chatbot-plugin'); ?></label></th>
+                        <td>
+                            <input name="tgi_wp_ai_azure_speech_avatar_local_video" type="text" id="tgi_wp_ai_azure_speech_avatar_local_video" value="<?php echo esc_attr($azure_speech_avatar_local_video); ?>" class="regular-text">
                         </td>
                     </tr>
                 </table>
@@ -430,9 +544,63 @@ class TGI_WP_AI_Chatbot_Plugin {
         $question_placeholder = $this->get_locale_msg('tgi_wp_ai_chatbot_question_select_placeholder', '');
         $reset_message_confirm = $this->get_locale_msg('tgi_wp_ai_chatbot_reset_confirm', '');
 
-        $reset_btn_html = '<span><button id="tgi-chatgpt-reset">' . esc_html($reset_message) . '</button></span> <script>';
+        $azure_speech_region = get_option('tgi_wp_ai_azure_speech_region', '');
+
+        $reset_btn_html = '<span><button id="tgi-chatgpt-reset" class="tgi-chatgpt-btn">' . esc_html($reset_message) . '</button></span> <script>';
         $reset_btn_html .= 'window.reset_message_confirm = "'. $reset_message_confirm . '";';
         $reset_btn_html .= 'window.load_previous_chat = '. get_option('tgi_chatgpt_load_previous_chat', '0') . ';';
+
+        $avatar_html = '';
+        $avatar_btn_html = '';
+        if(!empty($azure_speech_region)) {
+            $azure_speech_voice = get_option('tgi_wp_ai_azure_speech_voice', '');
+            $azure_speech_custom_voice_endpoint_id = get_option('tgi_wp_ai_azure_speech_custom_voice_endpoint_id', '');
+            $azure_speech_personal_voice_speaker_profile_id = get_option('tgi_wp_ai_azure_speech_personal_voice_speaker_profile_id', '');
+            $azure_speech_private_endpoint = get_option('tgi_wp_ai_azure_speech_private_endpoint', '');
+            $azure_speech_locale = get_option('tgi_wp_ai_azure_speech_locale', '');
+            $azure_speech_character = get_option('tgi_wp_ai_azure_speech_character', '');
+            $azure_speech_avatar_style = get_option('tgi_wp_ai_azure_speech_avatar_style', '');
+            $azure_speech_avatar_customized = get_option('tgi_wp_ai_azure_speech_avatar_customized', '0');
+            $azure_speech_avatar_local_video = get_option('tgi_wp_ai_azure_speech_avatar_local_video', '');
+
+            $reset_btn_html .= 'window.azure_speech_region = "'. $azure_speech_region . '";';
+            
+            //tgi_wp_ai_azure_speech_key do not show key, key will be used to retrieve token on server side
+            $reset_btn_html .= 'window.azure_speech_private_endpoint = "'. $azure_speech_private_endpoint . '";';
+            $reset_btn_html .= 'window.azure_speech_voice = "'. $azure_speech_voice . '";';
+            $reset_btn_html .= 'window.azure_speech_custom_voice_endpoint_id = "'. $azure_speech_custom_voice_endpoint_id . '";';
+            $reset_btn_html .= 'window.azure_speech_personal_voice_speaker_profile_id = "'. $azure_speech_personal_voice_speaker_profile_id . '";';
+            $reset_btn_html .= 'window.azure_speech_locale = "'. $azure_speech_locale . '";';
+            $reset_btn_html .= 'window.azure_speech_character = "'. $azure_speech_character . '";';
+            $reset_btn_html .= 'window.azure_speech_avatar_style = "'. $azure_speech_avatar_style . '";';
+            $reset_btn_html .= 'window.azure_speech_avatar_customized = '. ($azure_speech_avatar_customized == '0' ? 'false' : 'true') . ';';
+
+            $avatar_btn_html = '
+<button id="startSession" class="tgi-chatgpt-btn" onclick="window.startSession()">' . esc_html__('Open Avatar', 'tgi-wp-ai-chatbot-plugin') . '</button>
+<button id="stopSession" class="tgi-chatgpt-btn" onclick="window.stopSession()" disabled>' . esc_html__('Close Avatar', 'tgi-wp-ai-chatbot-plugin') . '</button>
+';
+
+            $avatar_html = '
+<div id="videoContainer" style="position: relative; width: 960px;">
+  <div id="overlayArea" style="position: absolute;">
+    <div id="chatHistory" style="
+        width: 360px;
+        height: 500px;
+        font-size: medium;
+        border: none;
+        resize: none;
+        background-color: transparent;
+        overflow: hidden;" contentEditable="true" hidden>
+    </div>
+  </div>
+  <div id="localVideo" hidden>
+      <video src="' . $azure_speech_avatar_local_video . '" autoplay loop muted></video>
+  </div>
+  <div id="remoteVideo"></div>
+</div>
+';
+        }
+
         $reset_btn_html .= '</script>';
         
         $question_html = '';
@@ -442,25 +610,30 @@ class TGI_WP_AI_Chatbot_Plugin {
             foreach ($questions as $question) {
                 $question_html .= '<option value="' . esc_attr($question) . '">' . esc_html($question) . '</option>';
             }
-            $question_html .= '</select></span>';    
+            $question_html .= '</select></span>';
         }
+
     
         return '
         <div id="tgi-chatgpt-icon" title="AI"><i class="fas fa-comments"></i></div>
         <div id="tgi-chatgpt-modal" style="display: none;">
-            <div class="tgi-chatgpt-modal-content">
-                <div class="tgi-chat-header">
-                    <span>' . esc_html($title) . '</span>
-                    <span class="tgi-chatgpt-close-container"> '. $reset_btn_html . '<span class="tgi-chatgpt-close">&times;</span> </span>
+            <div class="tgi-chatgpt-modal-container">
+                <div id="tgi-chatgpt-avatar" hidden>'. $avatar_html . '</div>
+                <div class="tgi-chatgpt-modal-content">
+                    <div class="tgi-chat-header">
+                        <span>' . esc_html($title) . '</span>
+                        <span>' . $avatar_btn_html. '</span>
+                        <span class="tgi-chatgpt-close-container"> '. $reset_btn_html . '<span class="tgi-chatgpt-close">&times;</span> </span>
+                    </div>
+                    <div class="tgi-chatgpt-messages">
+                        <span>' . esc_html($initial_message) . '</span>
+                    </div>
+                    <div class="tgi-chatgpt-input-container">
+                        <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr($type_your_message) . '">
+                        <button id="tgi-chatgpt-send">' . esc_html__('Send', 'tgi-wp-ai-chatbot-plugin') . '</button>
+                    </div>
+                    <div class="tgi-chatgpt-tools-container">' . $question_html . '</div>
                 </div>
-                <div class="tgi-chatgpt-messages">
-                    <span>' . esc_html($initial_message) . '</span>
-                </div>
-                <div class="tgi-chatgpt-input-container">
-                    <input type="text" id="tgi-chatgpt-input" placeholder="' . esc_attr($type_your_message) . '">
-                    <button id="tgi-chatgpt-send">' . esc_html__('Send', 'tgi-wp-ai-chatbot-plugin') . '</button>
-                </div>
-                <div class="tgi-chatgpt-tools-container">' . $question_html . '</div>
             </div>
         </div>';
     }   
@@ -708,7 +881,7 @@ class TGI_WP_AI_Chatbot_Plugin {
                 'path' => '/', 
                 'domain' => COOKIE_DOMAIN,
                 'secure' => true,
-                'httponly' => true,
+                'httponly' => false, //allow javascript to access this cookie
                 'samesite' => 'Strict' // None || Lax  || Strict
                 );
             setcookie('tgi_chatgpt_session_id', $session_id,  $arr_cookie_options);
@@ -809,11 +982,13 @@ class TGI_WP_AI_Chatbot_Plugin {
 
     public function load_session() {
         if (!isset($_COOKIE['tgi_chatgpt_session_id'])) {
+            wp_send_json_success();
             return;
         }
         
         $session_id = sanitize_text_field($_COOKIE['tgi_chatgpt_session_id']);
         if (empty($session_id)) {
+            wp_send_json_success();
             return;
         }
 
@@ -823,6 +998,57 @@ class TGI_WP_AI_Chatbot_Plugin {
         #read all rows from table where session_id is $session_id
         $result = $wpdb->get_results($wpdb->prepare("SELECT user_message, bot_response FROM $table_name WHERE session_id = %s order by id", $session_id));
         wp_send_json_success($result);
+    }
+
+    function generate_azure_token() {
+        $api_key = get_option( 'tgi_wp_ai_azure_speech_key' );
+        $region = get_option( 'tgi_wp_ai_azure_speech_region' );
+        $endpoint = "https://$region.api.cognitive.microsoft.com/sts/v1.0/issueToken";
+    
+        if ( ! $api_key || ! $region ) {
+            wp_send_json_error( array( 'message' => 'Azure Token Plugin settings are missing.' ), 400 );
+            wp_die();
+        }
+    
+        // Check if a valid token already exists
+        $token_data = get_transient('azure_token_data');
+        if ($token_data && time() < $token_data['expires_at']) {
+            wp_send_json_success( array( 'token' => $token_data['token'] ) );
+            wp_die();
+        }
+
+        $response = wp_remote_post( $endpoint, array(
+            'method'    => 'POST',
+            'headers'   => array(
+                'Ocp-Apim-Subscription-Key' => $api_key,
+                'Content-Type'              => 'application/x-www-form-urlencoded',
+            ),
+            'body'      => '',
+        ));
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( array( 'message' => $response->get_error_message() ), 500 );
+            wp_die();
+        }
+
+        $response_body = wp_remote_retrieve_body( $response );
+        if ( empty( $response_body ) ) {
+            wp_send_json_error( array( 'message' => 'Empty response from Azure token API.' ), 500 );
+            wp_die();
+        }
+    
+        $token = $response_body; // The token is the raw response body
+    
+        if ( $token ) {
+            // Store the token and expiry time
+            $expires_at = time() + (9 * 60); // Token expires in 10 minutes, setting 1-minute buffer
+            set_transient('azure_token_data', array('token' => $token, 'expires_at' => $expires_at), $expires_at);
+    
+            wp_send_json_success( array( 'token' => $token ) );
+        } else {
+            wp_send_json_error( array( 'message' => "Failed to generate Azure token. {$response_body} " ), 500 );
+        }
+        wp_die();
     }
 
     private function log_error($message) {
