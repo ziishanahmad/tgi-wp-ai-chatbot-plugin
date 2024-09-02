@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 // Define the plugin version as a constant, please increment it if js/css files are updated
 if (!defined('TGI_WP_AI_CHATBOT_VERSION')) {
-    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.2');
+    define('TGI_WP_AI_CHATBOT_VERSION', '1.0.3');
 }
 
 add_action('plugins_loaded', 'tgi_wp_ai_chatbot_load_textdomain');
@@ -275,6 +275,11 @@ class TGI_WP_AI_Chatbot_Plugin {
                 'en_US' => esc_html__('Who are you? Please use less than 10 words;What can you do? Please use less than 10 words.', 'tgi-wp-ai-chatbot-plugin'),
                 'zh_CN' => esc_html__('你是谁？请用10字以内;你能做什么，请用10字以内。', 'tgi-wp-ai-chatbot-plugin'),
                 'zh_TW' => esc_html__('你是誰？請用10字以内;你能做什麽，請用10字以内。', 'tgi-wp-ai-chatbot-plugin')
+            ),
+            'tgi_wp_ai_chatbot_extra_instruction' => array(
+                'en_US' => esc_html__('Please use English to respond.', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_CN' => esc_html__('请用简体中文回复。', 'tgi-wp-ai-chatbot-plugin'),
+                'zh_TW' => esc_html__('請用繁體中文回復。', 'tgi-wp-ai-chatbot-plugin')
             )
         );
     
@@ -676,7 +681,7 @@ class TGI_WP_AI_Chatbot_Plugin {
             ),
             'body' => json_encode(array(
                 'assistant_id' => $assistant_id,
-                'instructions' => ''  //Respond to the user query using the same language as the user inputs.
+                'instructions' => ''
             )),
             'timeout' => 60 // Set timeout to 60 seconds
         ));
@@ -895,6 +900,7 @@ class TGI_WP_AI_Chatbot_Plugin {
         }
         
         $message = sanitize_text_field($_POST['message']);
+
         $assistant_id = get_option('tgi_chatgpt_assistant_id');
         $thread_id = $this->get_thread_id_for_session($session_id);
 
@@ -904,6 +910,11 @@ class TGI_WP_AI_Chatbot_Plugin {
             if (!$thread_id) {
                 wp_send_json_error(__('Failed to create new thread', 'tgi-wp-ai-chatbot-plugin'));
             }
+        }
+        
+        $extra_instruction = $this->get_locale_msg('tgi_wp_ai_chatbot_extra_instruction', '');
+        if(!empty($extra_instruction)){
+            $message = $message . '\n' . $extra_instruction;
         }
 
         $message_added = $this->add_message_to_thread($thread_id, $message);
