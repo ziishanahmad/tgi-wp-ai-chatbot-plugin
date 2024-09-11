@@ -35,7 +35,8 @@
     z-index: 1001;
     right: 100px;
     top: 20%;
-    height: 600px;
+	min-height: 400px;
+    height: 70vh;
     max-width: 95%;
     max-height: 80vh;
     background: white;
@@ -66,7 +67,7 @@
     display: flex;
     flex-direction: column;
     height: 100%; /* Use 100% height to fill the modal */
-    width: 600px;
+    max-width: 100%;
 }
 
 .tgi-chatgpt-messages {
@@ -157,6 +158,7 @@
     padding: 10px;
     background-color: #f1f1f1; /* Optional: background color for the header */
     cursor: move; /* Show move cursor to indicate draggable area */
+    min-width: 30vw;
 }
 
 .tgi-chatgpt-close-container {
@@ -196,6 +198,16 @@
     }
 }
 
+@media (max-width: 1440px) {
+    #tgi-chatgpt-modal {
+        width: 50%;
+        max-width: 100%;
+    }
+	.tgi-chatgpt-modal-content {
+		width: 100%;
+	}
+}
+
 @media (max-width: 768px) {
     #tgi-chatgpt-modal {
         right: unset;
@@ -208,6 +220,9 @@
         right: 20px;
         bottom: 20px;
     }
+	.tgi-chatgpt-modal-content {
+		width: 99%;
+	}
 }
 
 audio {
